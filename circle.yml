@@ -1,3 +1,8 @@
 machine:
   services:
     - docker
+
+test:
+  override:
+  docker run -v ~/collections:/etc/postman -t postman/newman_ubuntu1404 \
+    --collection="https://www.getpostman.com/collections/30ce8497205c4b375f59"
