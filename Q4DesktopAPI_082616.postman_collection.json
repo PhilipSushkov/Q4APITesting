@@ -1,0 +1,985 @@
+{
+	"variables": [],
+	"info": {
+		"name": "Q4 Desktop API",
+		"_postman_id": "61731df6-eceb-5441-eb15-90816581f1f3",
+		"description": "Q4 Desktop API Testing",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authorization",
+			"description": "",
+			"item": [
+				{
+					"name": "Authorization",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "var jsonData = JSON.parse(responseBody);\npostman.setEnvironmentVariable(\"Auth\", \"Bearer \"+jsonData.token);"
+							}
+						}
+					],
+					"request": {
+						"url": "{{url}}/api/auth",
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "user",
+									"value": "pylypsushkov@gmail.com",
+									"type": "text",
+									"enabled": true
+								},
+								{
+									"key": "password",
+									"value": "qwerty@01",
+									"type": "text",
+									"enabled": true
+								},
+								{
+									"key": "product",
+									"value": "desktop",
+									"type": "text",
+									"enabled": true
+								}
+							]
+						},
+						"description": ""
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Company Profile Expected Trading Range",
+			"description": "",
+			"item": [
+				{
+					"name": "Expected Trading Range",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "var jsonData = JSON.parse(responseBody);\n\ntests[data.Ticker+\": Stock Items \"+jsonData.data.stock.length] = jsonData.data.stock.length > 0;\ntests[data.Ticker+\": Range Items \"+jsonData.data.range.length] = jsonData.data.range.length > 0;\n\nif (jsonData.data.stock.length > 5) {\n    var bStockDate = true;\n    var bStockLast = true;\n    } else {\n    var bStockDate = false;\n    var bStockLast = false;\n    }\n\nfor (var i in jsonData.data.stock){\n    var obj = jsonData.data.stock[i];\n    \n    if ((obj.date === null) || (obj.date === \"\")) {\n        bStockDate = false;\n    }\n    \n    if ((obj.Last === null) || (obj.Last === \"\") || (obj.Last < 0)) {\n        bStockLast = false;\n    }\n    \n}\n\ntests[data.Ticker+\": Stock Date\"] = bStockDate;\ntests[data.Ticker+\": Stock Last\"] = bStockLast;\n\nif (jsonData.data.range.length > 5) {\n    var bRangeDate = true;\n    var bRangeLow = true;\n    var bRangeHigh = true;\n    } else {\n    var bRangeDate = false;\n    var bRangeLow = false;\n    var bRangeHigh = false;\n    }\n\nfor (var i in jsonData.data.range){\n    var obj = jsonData.data.range[i];\n    \n    if ((obj.date === null) || (obj.date === \"\")) {\n        bRangeDate = false;\n    }\n    \n        if ((obj.low === null) || (obj.low === \"\") || (obj.low < 0)) {\n        bRangeLow = false;\n    }\n    \n    if ((obj.high === null) || (obj.high === \"\") || (obj.high < 0)) {\n        bRangeHigh = false;\n    }\n    \n}\n\ntests[data.Ticker+\": Range Date\"] = bRangeDate;\ntests[data.Ticker+\": Range Low\"] = bRangeLow;\ntests[data.Ticker+\": Range High\"] = bRangeHigh;\n"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": "postman.setGlobalVariable(\"Exchange\", data.Exchange);\npostman.setGlobalVariable(\"Ticker\", data.Ticker);"
+							}
+						}
+					],
+					"request": {
+						"url": "{{url}}/api/oxford/expected-ranges?appver={{appver}}&exchange={{Exchange}}&symbol={{Ticker}}&page=1&start=0&limit=25",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Auth}}",
+								"description": ""
+							},
+							{
+								"key": "url",
+								"value": "{{url}}",
+								"description": ""
+							},
+							{
+								"key": "appver",
+								"value": "{{appver}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Right Watchlist Range",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "var jsonData = JSON.parse(responseBody);\n\n//tests[\"jsonData.length: \"+jsonData.length] = jsonData.length > 0;\n\nif (jsonData.length > 0) {\n    var bId = true;\n    var bSymbol = true;\n    var bName = true;\n    var bHigh = true;\n    } else {\n    var bId = false;\n    var bSymbol = false;\n    var bName = false;\n    var bHigh = false;        \n    }\n    \nfor (var i in jsonData){\n    var obj = jsonData[i];\n    \n    if ((obj._id === null) || (obj._id === \"\")) {\n        bId = false;\n    }\n    \n    if ((obj.Symbol === null) || (obj.Symbol === \"\")) {\n        bSymbol = false;\n    }\n    \n    if ((obj.Name === null) || (obj.Name === \"\")) {\n        bName = false;\n    }\n    \n    if (obj.services.expected_ranges !== undefined) {\n        if ((obj.services.expected_ranges.high === null) || (obj.services.expected_ranges.high === \"\") || (obj.services.expected_ranges.high < 0)) {\n            bHigh = false\n        } else {\n            //tests[\"obj.Last: \"+obj.services.stock.Last] = i > 0;\n        }\n    } else {\n        bHigh = false;\n    }    \n    \ntests[\"Ticker Count \"+jsonData.length] = jsonData.length > 0;\ntests[\"_id\"] = bId;\ntests[\"Symbol\"] = bSymbol;\ntests[\"Name\"] = bName;\ntests[\"High\"] = bHigh;\n    \n\n}\n"
+							}
+						}
+					],
+					"request": {
+						"url": "{{url}}/api/watchlist/v2?appver={{appver}}&service=expected_ranges&page=1&start=0&limit=25",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Auth}}",
+								"description": ""
+							},
+							{
+								"key": "url",
+								"value": "{{url}}",
+								"description": ""
+							},
+							{
+								"key": "appver",
+								"value": "{{appver}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": ""
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Company Profile Indicators",
+			"description": "",
+			"item": [
+				{
+					"name": "Indicators",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "var jsonData = JSON.parse(responseBody);\n\n//tests[\"jsonData.length: \"+jsonData.data.length] = jsonData.data.length > 0;\n\nif (jsonData.data.length > 0) {\n    var bId = true;\n    var bSymbol = true;\n    var bActivism = true;\n    var bVolatility = true;\n    var bSentiment = true;\n    var bDate = true;\n    } else {\n    var bId = false;\n    var bSymbol = false;\n    var bActivism = false;\n    var bVolatility = false;\n    var bSentiment = false;\n    var bDate = false;        \n    }\n    \nfor (var i in jsonData.data){\n    var obj = jsonData.data[i];\n    \n    if ((obj._id === null) || (obj._id === \"\")) {\n        bId = false;\n    }\n    \n    if ((obj.Date === null) || (obj.Date === \"\")) {\n        bDate = false;\n    }\n    \n    if ((obj.Date === null) || (obj.Date === \"\")) {\n        bSymbol = false;\n    }\n    \n    if ((obj.oaa === null) || (obj.oaa === \"\")) {\n        bActivism = false;\n    }\n    \n    if ((obj.ovi === null) || (obj.ovi === \"\")) {\n        bVolatility = false;\n    }\n    \n    if ((obj.osi === null) || (obj.osi === \"\")) {\n        bSentiment = false;\n    }\n\n}\n\ntests[data.Ticker+\": Indicator Count \"+jsonData.data.length] = jsonData.data.length > 0;\ntests[data.Ticker+\": _id\"] = bId;\ntests[data.Ticker+\": Symbol\"] = bSymbol;\ntests[data.Ticker+\": Date\"] = bDate;\ntests[data.Ticker+\": Activism\"] = bActivism;\ntests[data.Ticker+\": Volatility\"] = bVolatility;\ntests[data.Ticker+\": Sentiment\"] = bSentiment;\n\n"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": "postman.setGlobalVariable(\"Exchange\", data.Exchange);\npostman.setGlobalVariable(\"Ticker\", data.Ticker);"
+							}
+						}
+					],
+					"request": {
+						"url": "{{url}}/api/oxford/indicators?appver=1.2.5&exchange={{Exchange}}&symbol={{Ticker}}&page=1&start=0&limit=5",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Auth}}",
+								"description": ""
+							},
+							{
+								"key": "url",
+								"value": "{{url}}",
+								"description": ""
+							},
+							{
+								"key": "appver",
+								"value": "{{appver}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Right Watchlist Sentiment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "var jsonData = JSON.parse(responseBody);\n\n//tests[\"jsonData.length: \"+jsonData.length] = jsonData.length > 0;\n\nif (jsonData.length > 0) {\n    var bId = true;\n    var bSymbol = true;\n    var bName = true;\n    var bSentiment = true;\n    } else {\n    var bId = false;\n    var bSymbol = false;\n    var bName = false;\n    var bSentiment = false;        \n    }\n    \nfor (var i in jsonData){\n    var obj = jsonData[i];\n    \n    if ((obj._id === null) || (obj._id === \"\")) {\n        bId = false;\n    }\n    \n    if ((obj.Symbol === null) || (obj.Symbol === \"\")) {\n        bSymbol = false;\n    }\n    \n    if ((obj.Name === null) || (obj.Name === \"\")) {\n        bName = false;\n    }\n    \n    if (obj.services.sentiment !== undefined) {\n        if ((obj.services.sentiment.osi === null) || (obj.services.sentiment.osi === \"\")) {\n            bSentiment = false\n        } else {\n            //tests[\"obj.Last: \"+obj.services.stock.Last] = i > 0;\n        }\n    } else {\n        bSentiment = false;\n    }    \n    \ntests[\"Ticker Count \"+jsonData.length] = jsonData.length > 0;\ntests[\"_id\"] = bId;\ntests[\"Symbol\"] = bSymbol;\ntests[\"Name\"] = bName;\ntests[\"Sentiment\"] = bSentiment;\n    \n\n}\n"
+							}
+						}
+					],
+					"request": {
+						"url": "{{url}}/api/watchlist/v2?appver={{appver}}&service=sentiment&page=1&start=0&limit=25",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Auth}}",
+								"description": ""
+							},
+							{
+								"key": "url",
+								"value": "{{url}}",
+								"description": ""
+							},
+							{
+								"key": "appver",
+								"value": "{{appver}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Right Watchlist Volatility",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "var jsonData = JSON.parse(responseBody);\n\n//tests[\"jsonData.length: \"+jsonData.length] = jsonData.length > 0;\n\nif (jsonData.length > 0) {\n    var bId = true;\n    var bSymbol = true;\n    var bName = true;\n    var bVolatility = true;\n    } else {\n    var bId = false;\n    var bSymbol = false;\n    var bName = false;\n    var bVolatility = false;        \n    }\n    \nfor (var i in jsonData){\n    var obj = jsonData[i];\n    \n    if ((obj._id === null) || (obj._id === \"\")) {\n        bId = false;\n    }\n    \n    if ((obj.Symbol === null) || (obj.Symbol === \"\")) {\n        bSymbol = false;\n    }\n    \n    if ((obj.Name === null) || (obj.Name === \"\")) {\n        bName = false;\n    }\n    \n    if (obj.services.volatility !== undefined) {\n        if ((obj.services.volatility.ovi === null) || (obj.services.volatility.ovi === \"\") || (obj.services.volatility.ovi < 0)) {\n            bVolatility = false\n        } else {\n            //tests[\"obj.Last: \"+obj.services.stock.Last] = i > 0;\n        }\n    } else {\n        bVolatility = false;\n    }    \n    \ntests[\"Ticker Count \"+jsonData.length] = jsonData.length > 0;\ntests[\"_id\"] = bId;\ntests[\"Symbol\"] = bSymbol;\ntests[\"Name\"] = bName;\ntests[\"Volatility\"] = bVolatility;\n    \n\n}\n"
+							}
+						}
+					],
+					"request": {
+						"url": "{{url}}/api/watchlist/v2?appver={{appver}}&service=volatility&page=1&start=0&limit=25",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Auth}}",
+								"description": ""
+							},
+							{
+								"key": "url",
+								"value": "{{url}}",
+								"description": ""
+							},
+							{
+								"key": "appver",
+								"value": "{{appver}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Right Watchlist Activism",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "var jsonData = JSON.parse(responseBody);\n\n//tests[\"jsonData.length: \"+jsonData.length] = jsonData.length > 0;\n\nif (jsonData.length > 0) {\n    var bId = true;\n    var bSymbol = true;\n    var bName = true;\n    var bActivism = true;\n    } else {\n    var bId = false;\n    var bSymbol = false;\n    var bName = false;\n    var bActivism = false;        \n    }\n    \nfor (var i in jsonData){\n    var obj = jsonData[i];\n    \n    if ((obj._id === null) || (obj._id === \"\")) {\n        bId = false;\n    }\n    \n    if ((obj.Symbol === null) || (obj.Symbol === \"\")) {\n        bSymbol = false;\n    }\n    \n    if ((obj.Name === null) || (obj.Name === \"\")) {\n        bName = false;\n    }\n    \n    if (obj.services.activism !== undefined) {\n        if ((obj.services.activism.oaa === null) || (obj.services.activism.oaa === \"\") || (obj.services.activism.oaa < 0)) {\n            bActivism = false\n        } else {\n            //tests[\"obj.Last: \"+obj.services.stock.Last] = i > 0;\n        }\n    } else {\n        bActivism = false;\n    }    \n    \ntests[\"Ticker Count \"+jsonData.length] = jsonData.length > 0;\ntests[\"_id\"] = bId;\ntests[\"Symbol\"] = bSymbol;\ntests[\"Name\"] = bName;\ntests[\"Activism\"] = bActivism;\n    \n\n}\n"
+							}
+						}
+					],
+					"request": {
+						"url": "{{url}}/api/watchlist/v2?appver={{appver}}&service=activism&page=1&start=0&limit=25",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Auth}}",
+								"description": ""
+							},
+							{
+								"key": "url",
+								"value": "{{url}}",
+								"description": ""
+							},
+							{
+								"key": "appver",
+								"value": "{{appver}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": ""
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Company Profile Overview",
+			"description": "",
+			"item": [
+				{
+					"name": "Company Profile Overview",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "var jsonData = JSON.parse(responseBody);\n\nvar bDataEmpty = jsonData.data === null;\n\nif (bDataEmpty === false) {\n\n    tests[\"--- Company Ticker: \"+jsonData.data.Security.Symbol] = jsonData.data.Security.Symbol === data.Ticker;\n    tests[\"--- Company Name: \"+jsonData.data.Security.Name] = jsonData.data.Security.Name !== null;\n    tests[jsonData.data.Security.Symbol+\" CIK: \"+jsonData.data.Security.CIK] = jsonData.data.Security.CIK !== null;\n    tests[jsonData.data.Security.Symbol+\" Market: \"+jsonData.data.Security.Market] = jsonData.data.Security.Market === data.Market;\n    tests[jsonData.data.Security.Symbol+\" Market Identification Code: \"+jsonData.data.Security.MarketIdentificationCode] = jsonData.data.Security.MarketIdentificationCode !== null;\n    tests[jsonData.data.Security.Symbol+\" Category Or Industry: \"+jsonData.data.Security.CategoryOrIndustry] = jsonData.data.Security.CategoryOrIndustry !== null;\n\n    tests[jsonData.data.Security.Symbol+\" Date: \"+jsonData.data.Date] = jsonData.data.Date !== null;\n    tests[jsonData.data.Security.Symbol+\" Time: \"+jsonData.data.Time] = jsonData.data.Time !== null;\n    tests[jsonData.data.Security.Symbol+\" Open: \"+jsonData.data.Open] = jsonData.data.Open > 0;\n    tests[jsonData.data.Security.Symbol+\" Close: \"+jsonData.data.Close] = jsonData.data.Close !== null;\n    tests[jsonData.data.Security.Symbol+\" High: \"+jsonData.data.High] = jsonData.data.High > 0;\n    tests[jsonData.data.Security.Symbol+\" Low: \"+jsonData.data.Low] = jsonData.data.Low > 0;\n    tests[jsonData.data.Security.Symbol+\" Last: \"+jsonData.data.Last] = jsonData.data.Last > 0;\n    tests[jsonData.data.Security.Symbol+\" Last Size: \"+jsonData.data.LastSize] = jsonData.data.LastSize !== null;\n    tests[jsonData.data.Security.Symbol+\" Volume: \"+jsonData.data.Volume] = jsonData.data.Volume !== null;\n    tests[jsonData.data.Security.Symbol+\" Previous Close: \"+jsonData.data.PreviousClose] = jsonData.data.PreviousClose > 0;\n    tests[jsonData.data.Security.Symbol+\" Previous Close Date: \"+jsonData.data.PreviousCloseDate] = jsonData.data.PreviousCloseDate !== null;\n    tests[jsonData.data.Security.Symbol+\" Change From Previous Close: \"+jsonData.data.ChangeFromPreviousClose] = jsonData.data.ChangeFromPreviousClose !== null;\n    tests[jsonData.data.Security.Symbol+\" Percent Change From Previous Close: \"+jsonData.data.PercentChangeFromPreviousClose] = jsonData.data.PercentChangeFromPreviousClose !== null;\n    tests[jsonData.data.Security.Symbol+\" Fifty Two Week High: \"+jsonData.data.FiftyTwoWeekHigh] = jsonData.data.FiftyTwoWeekHigh > 0;\n    tests[jsonData.data.Security.Symbol+\" Fifty Two Week Low: \"+jsonData.data.FiftyTwoWeekLow] = jsonData.data.FiftyTwoWeekLow > 0;\n    tests[jsonData.data.Security.Symbol+\" Last Modified: \"+jsonData.data.lastModified] = jsonData.data.lastModified !== null;\n    tests[jsonData.data.Security.Symbol+\" Currency: \"+jsonData.data.Currency] = jsonData.data.Currency !== null;\n    \n    } else {\n    tests[\"No Data for this Company Ticker \"] = jsonData.data !== null;\n}\n"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": "postman.setGlobalVariable(\"ComTicker\", data.ComTicker);\npostman.setGlobalVariable(\"Ticker\", data.Ticker);\npostman.setGlobalVariable(\"Market\", data.Market);\n"
+							}
+						}
+					],
+					"request": {
+						"url": "{{url}}/api/stock/{{ComTicker}}?appver={{appver}}",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Auth}}",
+								"description": ""
+							},
+							{
+								"key": "appver",
+								"value": "{{appver}}",
+								"description": ""
+							},
+							{
+								"key": "url",
+								"value": "{{url}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Dow Jones Index",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "var jsonData = JSON.parse(responseBody);\n\nvar bLast = true;\nvar bId = true;\nvar bDate = true;\nvar bVolume = true;\n\nfor (var i in jsonData.historical){\n    var obj = jsonData.historical[i];\n    \n    if ((obj._id === null) || (obj._id === \"\")) {\n        bId = false;\n    }\n    \n    if ((obj.Date === null) || (obj.Date === \"\")) {\n        bDate = false;\n    }\n    \n    if ((obj.Last === null) || (obj.Last === \"\") || (obj.Last < 0)) {\n        bLast = false;\n    }\n    \n    if ((obj.Volume === null) || (obj.Volume === \"\") || (obj.Volume < 0)) {\n        bVolume = false;\n    }\n\n}\n\ntests[\"DJ Index: Id Count \"+jsonData.historical.length] = jsonData.historical.length > 200;\ntests[\"DJ Index: _id\"] = bId;\ntests[\"DJ Index: Date\"] = bDate;\ntests[\"DJ Index: Last\"] = bLast;\ntests[\"DJ Index: Volume\"] = bVolume;"
+							}
+						}
+					],
+					"request": {
+						"url": "{{url}}/api/stock/index?appver={{appver}}&type=dj&page=1&start=0&limit=25",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Auth}}",
+								"description": ""
+							},
+							{
+								"key": "url",
+								"value": "{{url}}",
+								"description": ""
+							},
+							{
+								"key": "appver",
+								"value": "{{appver}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "S&P500 Index",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "var jsonData = JSON.parse(responseBody);\n\nvar bLast = true;\nvar bId = true;\nvar bDate = true;\nvar bVolume = true;\n\nfor (var i in jsonData.historical){\n    var obj = jsonData.historical[i];\n    \n    if ((obj._id === null) || (obj._id === \"\")) {\n        bId = false;\n    }\n    \n    if ((obj.Date === null) || (obj.Date === \"\")) {\n        bDate = false;\n    }\n    \n    if ((obj.Last === null) || (obj.Last === \"\") || (obj.Last < 0)) {\n        bLast = false;\n    }\n    \n    if ((obj.Volume === null) || (obj.Volume === \"\") || (obj.Volume < 0)) {\n        bVolume = false;\n    }\n\n}\n\ntests[\"S&P500 Index: Id Count \"+jsonData.historical.length] = jsonData.historical.length > 200;\ntests[\"S&P500 Index: _id\"] = bId;\ntests[\"S&P500: Date\"] = bDate;\ntests[\"S&P500: Last\"] = bLast;\ntests[\"S&P500: Volume\"] = bVolume;"
+							}
+						}
+					],
+					"request": {
+						"url": "{{url}}/api/stock/index?appver={{appver}}&type=sp&page=1&start=0&limit=25",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Auth}}",
+								"description": ""
+							},
+							{
+								"key": "url",
+								"value": "{{url}}",
+								"description": ""
+							},
+							{
+								"key": "appver",
+								"value": "{{appver}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Nasdaq Index",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "var jsonData = JSON.parse(responseBody);\n\nvar bLast = true;\nvar bId = true;\nvar bDate = true;\nvar bVolume = true;\n\nfor (var i in jsonData.historical){\n    var obj = jsonData.historical[i];\n    \n    if ((obj._id === null) || (obj._id === \"\")) {\n        bId = false;\n    }\n    \n    if ((obj.Date === null) || (obj.Date === \"\")) {\n        bDate = false;\n    }\n    \n    if ((obj.Last === null) || (obj.Last === \"\") || (obj.Last < 0)) {\n        bLast = false;\n    }\n    \n    if ((obj.Volume === null) || (obj.Volume === \"\") || (obj.Volume < 0)) {\n        bVolume = false;\n    }\n\n}\n\ntests[\"NASDAQ Index: Id Count \"+jsonData.historical.length] = jsonData.historical.length > 200;\ntests[\"NASDAQ Index: _id\"] = bId;\ntests[\"NASDAQ Index: Date\"] = bDate;\ntests[\"NASDAQ Index: Last\"] = bLast;\ntests[\"NASDAQ Index: Volume\"] = bVolume;"
+							}
+						}
+					],
+					"request": {
+						"url": "{{url}}/api/stock/index?appver={{appver}}&type=nq&page=1&start=0&limit=25",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Auth}}",
+								"description": ""
+							},
+							{
+								"key": "url",
+								"value": "{{url}}",
+								"description": ""
+							},
+							{
+								"key": "appver",
+								"value": "{{appver}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Company News",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "var jsonData = JSON.parse(responseBody);\n\ntests[data.Ticker+\": storyId Count \"+jsonData.length] = jsonData.length > 0;"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": "postman.setGlobalVariable(\"Exchange\", data.Exchange);\npostman.setGlobalVariable(\"Ticker\", data.Ticker);"
+							}
+						}
+					],
+					"request": {
+						"url": "{{url}}/api/news?appver={{appver}}&symbol={{Ticker}}&exchange={{Exchange}}&page=1&start=0&limit=25",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Auth}}",
+								"description": ""
+							},
+							{
+								"key": "url",
+								"value": "{{url}}",
+								"description": ""
+							},
+							{
+								"key": "appver",
+								"value": "{{appver}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Company Events&Transcripts",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "var jsonData = JSON.parse(responseBody);\n\ntests[data.Ticker+\": eventId Count \"+jsonData.data.length] = jsonData.data.length > 0;"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": "postman.setGlobalVariable(\"ComTicker\", data.ComTicker);\npostman.setGlobalVariable(\"Exchange\", data.Exchange);\npostman.setGlobalVariable(\"Ticker\", data.Ticker);"
+							}
+						}
+					],
+					"request": {
+						"url": "{{url}}/api/event?appver={{appver}}&ticker={{ComTicker}}&page=1&start=0&limit=25",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Auth}}",
+								"description": ""
+							},
+							{
+								"key": "url",
+								"value": "{{url}}",
+								"description": ""
+							},
+							{
+								"key": "appver",
+								"value": "{{appver}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Company Turnover",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "var jsonData = JSON.parse(responseBody);\n\ntests[data.Ticker+\": Items Count \"+jsonData.data.length] = jsonData.data.length > 0;"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": "postman.setGlobalVariable(\"Exchange\", data.Exchange);\npostman.setGlobalVariable(\"Ticker\", data.Ticker);"
+							}
+						}
+					],
+					"request": {
+						"url": "{{url}}/api/ownership/company/institution/turnover?appver={{appver}}&exchange={{Exchange}}&symbol={{Ticker}}&page=1&start=0&limit=25",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Auth}}",
+								"description": ""
+							},
+							{
+								"key": "url",
+								"value": "{{url}}",
+								"description": ""
+							},
+							{
+								"key": "appver",
+								"value": "{{appver}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Stock Historical Data",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "var jsonData = JSON.parse(responseBody);\n\nif (jsonData.historical.length > 10) {\n    var bLast = true;\n    var bId = true;\n    var bDate = true;\n    var bVolume = true;\n    } else {\n    var bLast = false;\n    var bId = false;\n    var bDate = false;\n    var bVolume = false;        \n    }\n\nfor (var i in jsonData.historical){\n    var obj = jsonData.historical[i];\n    \n    if ((obj._id === null) || (obj._id === \"\")) {\n        bId = false;\n    }\n    \n    if ((obj.Date === null) || (obj.Date === \"\")) {\n        bDate = false;\n    }\n    \n    if ((obj.Last === null) || (obj.Last === \"\") || (obj.Last < 0)) {\n        bLast = false;\n    }\n    \n    if ((obj.Volume === null) || (obj.Volume === \"\") || (obj.Volume < 0)) {\n        bVolume = false;\n    }\n\n}\n\ntests[data.Ticker+\": Id Count \"+jsonData.historical.length] = jsonData.historical.length > 200;\ntests[data.Ticker+\": _id\"] = bId;\ntests[data.Ticker+\": Date\"] = bDate;\ntests[data.Ticker+\": Last\"] = bLast;\ntests[data.Ticker+\": Volume\"] = bVolume;\n \n"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": "postman.setGlobalVariable(\"Exchange\", data.Exchange);\npostman.setGlobalVariable(\"Ticker\", data.Ticker);\n\n//postman.setGlobalVariable(\"Exchange\", \"XNAS\");\n//postman.setGlobalVariable(\"Ticker\", \"AAPL\");\n"
+							}
+						}
+					],
+					"request": {
+						"url": "{{url}}/api/stock/historical?appver={{appver}}&exchange={{Exchange}}&symbol={{Ticker}}&page=1&start=0&limit=25",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Auth}}",
+								"description": ""
+							},
+							{
+								"key": "url",
+								"value": "{{url}}",
+								"description": ""
+							},
+							{
+								"key": "appver",
+								"value": "{{appver}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Right Watchlist Stock",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "var jsonData = JSON.parse(responseBody);\n\n//tests[\"jsonData.length: \"+jsonData.length] = jsonData.length > 0;\n\nif (jsonData.length > 0) {\n    var bId = true;\n    var bSymbol = true;\n    var bName = true;\n    var bLast = true;\n    } else {\n    var bId = false;\n    var bSymbol = false;\n    var bName = false;\n    var bLast = false;        \n    }\n    \nfor (var i in jsonData){\n    var obj = jsonData[i];\n    \n    if ((obj._id === null) || (obj._id === \"\")) {\n        bId = false;\n    }\n    \n    if ((obj.Symbol === null) || (obj.Symbol === \"\")) {\n        bSymbol = false;\n    }\n    \n    if ((obj.Name === null) || (obj.Name === \"\")) {\n        bName = false;\n    }\n    \n    if (obj.services.stock !== undefined) {\n        if ((obj.services.stock.Last === null) || (obj.services.stock.Last === \"\") || (obj.services.stock.Last < 0)) {\n            bLast = false\n        } else {\n            //tests[\"obj.Last: \"+obj.services.stock.Last] = i > 0;\n        }\n    } else {\n        bLast = false;\n    }    \n    \ntests[\"Ticker Count \"+jsonData.length] = jsonData.length > 0;\ntests[\"_id\"] = bId;\ntests[\"Symbol\"] = bSymbol;\ntests[\"Name\"] = bName;\ntests[\"Last quote\"] = bLast;\n    \n\n}"
+							}
+						}
+					],
+					"request": {
+						"url": "{{url}}/api/watchlist/v2?appver={{appver}}&service=stock&page=1&start=0&limit=25",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Auth}}",
+								"description": ""
+							},
+							{
+								"key": "url",
+								"value": "{{url}}",
+								"description": ""
+							},
+							{
+								"key": "appver",
+								"value": "{{appver}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Company Average Volume",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "var jsonData = JSON.parse(responseBody);\n\nvar bDataEmpty = jsonData.data === null;\n\nif (bDataEmpty === false) {\n    \n    tests[data.Ticker+\": Average Volume \"+jsonData.data.volumeAverage] = jsonData.data.volumeAverage > 0;\n    \n}"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": "postman.setGlobalVariable(\"ComTicker\", data.ComTicker);\npostman.setGlobalVariable(\"Ticker\", data.Ticker);"
+							}
+						}
+					],
+					"request": {
+						"url": "{{url}}/api/stock/average-volume/{{ComTicker}}?appver={{appver}}",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Auth}}",
+								"description": ""
+							},
+							{
+								"key": "url",
+								"value": "{{url}}",
+								"description": ""
+							},
+							{
+								"key": "appver",
+								"value": "{{appver}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Company Style",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "var jsonData = JSON.parse(responseBody);\n\ntests[data.Ticker+\": Items Count \"+jsonData.data.length] = jsonData.data.length > 0;"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": "postman.setGlobalVariable(\"Exchange\", data.Exchange);\npostman.setGlobalVariable(\"Ticker\", data.Ticker);"
+							}
+						}
+					],
+					"request": {
+						"url": "{{url}}/api/ownership/company/institution/style?appver={{appver}}&exchange={{Exchange}}&symbol={{Ticker}}&page=1&start=0&limit=25",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Auth}}",
+								"description": ""
+							},
+							{
+								"key": "url",
+								"value": "{{url}}",
+								"description": ""
+							},
+							{
+								"key": "appver",
+								"value": "{{appver}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": ""
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Company Profile Relative Performance",
+			"description": "",
+			"item": [
+				{
+					"name": "Relative Performance Return Analysis",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "var jsonData = JSON.parse(responseBody);\n\nvar bDataEmpty = jsonData.data === null;\n\nif (bDataEmpty === false) {\n    tests[data.Ticker+\": Date\"] = ((jsonData.data.date !== null) || (jsonData.data.date !== \"\"));\n    tests[data.Ticker+\": Symbol\"] = ((jsonData.data.symbol !== null) || (jsonData.data.symbol !== \"\"));\n    tests[data.Ticker+\": Stock\"] = ((jsonData.data.stockspecificreturn !== null) || (jsonData.data.stockspecificreturn !== 0));\n    tests[data.Ticker+\": Peer\"] = ((jsonData.data.returnduetopeers !== null) || (jsonData.data.returnduetopeers !== 0));\n    tests[data.Ticker+\": Industry\"] = ((jsonData.data.returnduetosector !== null) || (jsonData.data.returnduetosector !== 0));\n    tests[data.Ticker+\": Market\"] = ((jsonData.data.returnduetomarket !== null) || (jsonData.data.returnduetomarket !== 0));\n} else {\n    tests[\"No Data for this Company Ticker \"] = jsonData.data !== null;\n}"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": "postman.setGlobalVariable(\"Exchange\", data.Exchange);\npostman.setGlobalVariable(\"Ticker\", data.Ticker);\npostman.setGlobalVariable(\"ComTicker\", data.ComTicker);"
+							}
+						}
+					],
+					"request": {
+						"url": "{{url}}/api/oxford/return-analysis/{{ComTicker}}?appver={{appver}}",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Auth}}",
+								"description": ""
+							},
+							{
+								"key": "url",
+								"value": "{{url}}",
+								"description": ""
+							},
+							{
+								"key": "appver",
+								"value": "{{appver}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Right Watchlist Relative Performance",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "var jsonData = JSON.parse(responseBody);\n\n//tests[\"jsonData.length: \"+jsonData.length] = jsonData.length > 0;\n\nif (jsonData.length > 0) {\n    var bId = true;\n    var bSymbol = true;\n    var bName = true;\n    var bStock = true;\n    var bPeer = true;\n    var bIndustry = true;\n    var bMarket = true;\n    } else {\n    var bId = false;\n    var bSymbol = false;\n    var bName = false;\n    var bStock = false;\n    var bPeer = false;\n    var bIndustry = false;\n    var bMarket = false;       \n    }\n    \nfor (var i in jsonData){\n    var obj = jsonData[i];\n    \n    if ((obj._id === null) || (obj._id === \"\")) {\n        bId = false;\n    }\n    \n    if ((obj.Symbol === null) || (obj.Symbol === \"\")) {\n        bSymbol = false;\n    }\n    \n    if ((obj.Name === null) || (obj.Name === \"\")) {\n        bName = false;\n    }\n    \n    if (obj.services.returnAnalysis !== undefined) {\n        if ((obj.services.returnAnalysis.stockspecificreturn === null) || (obj.services.returnAnalysis.stockspecificreturn === \"\") || (obj.services.returnAnalysis.stockspecificreturn === 0)) {\n            bStock = false\n        } else {\n            //tests[\"obj.Last: \"+obj.services.stock.Last] = i > 0;\n        }\n    } else {\n        bStock = false;\n    }    \n    \n    if (obj.services.returnAnalysis !== undefined) {\n        if ((obj.services.returnAnalysis.returnduetopeers === null) || (obj.services.returnAnalysis.returnduetopeers === \"\") || (obj.services.returnAnalysis.returnduetopeers === 0)) {\n            bPeer = false\n        } else {\n            //tests[\"obj.Last: \"+obj.services.stock.Last] = i > 0;\n        }\n    } else {\n        bPeer = false;\n    }  \n    \n    if (obj.services.returnAnalysis !== undefined) {\n        if ((obj.services.returnAnalysis.returnduetosector === null) || (obj.services.returnAnalysis.returnduetosector === \"\") || (obj.services.returnAnalysis.returnduetosector === 0)) {\n            bIndustry = false\n        } else {\n            //tests[\"obj.Last: \"+obj.services.stock.Last] = i > 0;\n        }\n    } else {\n        bIndustry = false;\n    }  \n    \n    if (obj.services.returnAnalysis !== undefined) {\n        if ((obj.services.returnAnalysis.returnduetomarket === null) || (obj.services.returnAnalysis.returnduetomarket === \"\") || (obj.services.returnAnalysis.returnduetomarket === 0)) {\n            bMarket = false\n        } else {\n            //tests[\"obj.Last: \"+obj.services.stock.Last] = i > 0;\n        }\n    } else {\n        bMarket = false;\n    }  \n    \ntests[\"Ticker Count \"+jsonData.length] = jsonData.length > 0;\ntests[\"_id\"] = bId;\ntests[\"Symbol\"] = bSymbol;\ntests[\"Name\"] = bName;\ntests[\"Stock\"] = bStock;\ntests[\"Peer\"] = bPeer;    \ntests[\"Industry\"] = bIndustry;   \ntests[\"Market\"] = bMarket; \n\n}\n"
+							}
+						}
+					],
+					"request": {
+						"url": "{{url}}/api/watchlist/v2?appver={{appver}}&service=returnAnalysis&page=1&start=0&limit=25",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Auth}}",
+								"description": ""
+							},
+							{
+								"key": "url",
+								"value": "{{url}}",
+								"description": ""
+							},
+							{
+								"key": "appver",
+								"value": "{{appver}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Relative Performance Volume Analysis",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "var jsonData = JSON.parse(responseBody);\n\nvar bDataEmpty = jsonData.data.length === 0;\n\nif (bDataEmpty === false) {\n    tests[data.Ticker+\": Date\"] = ((jsonData.data.date !== null) || (jsonData.data.date !== \"\"));\n    tests[data.Ticker+\": Actual Volume\"] = ((jsonData.data.volumeondate !== null) || (jsonData.data.volumeondate !== 0));\n    tests[data.Ticker+\": Expected Volume\"] = ((jsonData.data.expectedvolume !== null) || (jsonData.data.expectedvolume !== 0));\n    tests[data.Ticker+\": Market Volume\"] = ((jsonData.data.volumeduetomarket !== null) || (jsonData.data.volumeduetomarket !== 0));\n    tests[data.Ticker+\": Industry Volume\"] = ((jsonData.data.volumeduetosector !== null) || (jsonData.data.volumeduetosector !== 0));\n    tests[data.Ticker+\": Peer Volume\"] = ((jsonData.data.volumeduetopeers !== null) || (jsonData.data.volumeduetopeers !== 0));\n    tests[data.Ticker+\": Stock Volume\"] = ((jsonData.data.stockspecificvolume !== null) || (jsonData.data.stockspecificvolume !== 0));\n} else {\n    tests[\"No Data for this Company Ticker \"] = jsonData.data.length !== 0;\n}"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": "postman.setGlobalVariable(\"Exchange\", data.Exchange);\npostman.setGlobalVariable(\"Ticker\", data.Ticker);\npostman.setGlobalVariable(\"ComTicker\", data.ComTicker);"
+							}
+						}
+					],
+					"request": {
+						"url": "{{url}}/api/oxford/volume-analysis?appver={{appver}}&exchange={{Exchange}}&symbol={{Ticker}}&page=1&start=0&limit=5",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Auth}}",
+								"description": ""
+							},
+							{
+								"key": "url",
+								"value": "{{url}}",
+								"description": ""
+							},
+							{
+								"key": "appver",
+								"value": "{{appver}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": ""
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Dashboard",
+			"description": "",
+			"item": [
+				{
+					"name": "Home Company Stock Values",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "//tests[\"data.Last\"] = responseBody.has(\"191.365\");\ntests[\"Status code is 200\"] = responseCode.code === 200;\n\nvar jsonData = JSON.parse(responseBody);\ntests[\"Last Quote: \"+jsonData.data.Last] = jsonData.data.Last > 0;"
+							}
+						}
+					],
+					"request": {
+						"url": "{{url}}/api/stock/mycompany?appver={{appver}}",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Auth}}",
+								"description": ""
+							},
+							{
+								"key": "url",
+								"value": "{{url}}",
+								"description": ""
+							},
+							{
+								"key": "appver",
+								"value": "{{appver}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": ""
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
