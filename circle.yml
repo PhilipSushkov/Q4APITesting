@@ -4,4 +4,4 @@ machine:
 
 test:
   override:
-  - docker run -t postman/newman_ubuntu1404 --collection="https://www.getpostman.com/collections/30ce8497205c4b375f59" --environment="https://raw.githubusercontent.com/PhilipSushkov/Q4APITesting/master/env.json" --data="https://raw.githubusercontent.com/PhilipSushkov/Q4APITesting/master/com_tickers.csv"
+  - docker run -t postman/newman_ubuntu1404 --collection="https://www.getpostman.com/collections/30ce8497205c4b375f59" --environment="https://raw.githubusercontent.com/PhilipSushkov/Q4APITesting/master/env.json"
