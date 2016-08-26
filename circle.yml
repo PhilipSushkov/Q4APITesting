@@ -4,4 +4,4 @@ machine:
 
 test:
   override:
-  - docker run -t postman/newman_ubuntu1404 \ --url="https://www.getpostman.com/collections/30ce8497205c4b375f59"
+  - docker run -t postman/newman_ubuntu1404 \ --url="https://documenter.getpostman.com/view/486592/oauth/2JuE7s"
